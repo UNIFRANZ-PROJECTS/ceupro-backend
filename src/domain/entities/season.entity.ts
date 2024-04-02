@@ -7,11 +7,14 @@ export class SeasonEntity {
     public price: number,
     public start: Date,
     public end: Date,
-    public stages?: StageEntity[],
+    public stages?: StageEntity,
   ) { }
 
   static fromObject(object: { [key: string]: any; }) {
     const { id, name, price,start, end, stages } = object;
-    return new SeasonEntity(id, name,price, start, end, stages.map((e: StageEntity) => StageEntity.fromObject(e)));
+
+    const stageEntity = stages ? StageEntity.fromObject(stages) : undefined;
+
+    return new SeasonEntity(id, name,price, start, end, stageEntity);
   }
 }

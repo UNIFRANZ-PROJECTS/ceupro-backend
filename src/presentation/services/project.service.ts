@@ -47,7 +47,7 @@ export class ProjectService {
   }
 
   async createProject(projectDto: ProjectDto, user: UserEntity) {
-    const { ...createProjectDto } = projectDto;
+    const { students,...createProjectDto } = projectDto;
     const projectExists = await prisma.projects.findFirst({ where: { title: createProjectDto.title } });
     if (projectExists) throw CustomError.badRequest('El proyecto ya existe');
 
@@ -55,12 +55,10 @@ export class ProjectService {
       const project = await prisma.projects.create({
         data: {
           ...createProjectDto,
-          code:'',
-        },
-      });
-      const projectCreate = await prisma.projects.findFirst({
-        where: {
-          id: project.id
+          code:'sdsss',
+          students: {
+            connect: students.map(studentId => ({ id: studentId })),
+          },
         },
         include: {
           category:true,
@@ -68,11 +66,10 @@ export class ProjectService {
           students:true,
           season:true,
           staff:true,
-          projectHistories:true,
         }
       });
 
-      const { ...projectEntity } = ProjectEntity.fromObject(projectCreate!);
+      const { ...projectEntity } = ProjectEntity.fromObject(project!);
       return projectEntity;
 
     } catch (error) {
@@ -81,7 +78,7 @@ export class ProjectService {
   }
 
   async updateProject(projectDto: ProjectDto, user: UserEntity, projectId: number) {
-    const { ...updateProjectDto } = projectDto;
+    const { students,...updateProjectDto } = projectDto;
     const existingProjectWithName = await prisma.projects.findFirst({
       where: {
         AND: [
@@ -109,6 +106,10 @@ export class ProjectService {
         where: { id: projectId },
         data: {
           ...updateProjectDto,
+          students: {
+            disconnect: projectExists.students.map(student => ({ id: student.id })),
+            connect: students.map(studentId => ({ id: studentId })),
+          },
         },
         include: {
           category:true,

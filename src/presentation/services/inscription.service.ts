@@ -20,8 +20,16 @@ export class InscriptionService {
             state: true
           },
           include: {
-            student: true,
-            staff: true,
+            student: {
+              include:{
+                user:true,
+              }
+            },
+            staff: {
+              include:{
+                user:true,
+              }
+            },
             season: true,
           }
         }),
@@ -61,23 +69,29 @@ export class InscriptionService {
       const inscription = await prisma.inscriptions.create({
         data: {
           ...createInscriptionDto,
+          studentId:createInscriptionDto.studentId,
+          staffId:createInscriptionDto.staffId,
           amountDelivered: 1,
           returnedAmount: 2,
           url: ''
         },
-      });
-      const inscriptionCreate = await prisma.inscriptions.findFirst({
-        where: {
-          id: inscription.id
-        },
         include: {
-          student: true,
-          staff: true,
+          student: {
+            include:{
+              user:true,
+            }
+          },
+          staff: {
+            include:{
+              user:true,
+            }
+          },
           season: true,
         }
       });
+      console.log(inscription)
 
-      const { ...inscriptionEntity } = InscriptionEntity.fromObject(inscriptionCreate!);
+      const { ...inscriptionEntity } = InscriptionEntity.fromObject(inscription!);
       return inscriptionEntity;
 
     } catch (error) {

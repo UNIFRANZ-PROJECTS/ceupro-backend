@@ -13,6 +13,10 @@ export class StaffEntity {
   }
   static fromObject(object: { [key: string]: any; }) {
     const { id, role, user} = object;
-    return new StaffEntity(id, RoleEntity.fromObject(role),UserEntity.fromObject(user));
+
+    const roleEntity = role ? RoleEntity.fromObject(role) : undefined;
+    const userEntity = user ? UserEntity.fromObject(user) : undefined;
+
+    return new StaffEntity(id, roleEntity,userEntity);
   }
 }

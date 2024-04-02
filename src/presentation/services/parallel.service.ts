@@ -20,7 +20,11 @@ export class ParallelService {
             state: true
           },
           include: {
-            teacher: true,
+            teacher: {
+              include:{
+                user: true,
+              }
+            },
             subject: true,
           }
         }),
@@ -44,7 +48,19 @@ export class ParallelService {
 
   async createParallel(parallelDto: ParallelDto, user: UserEntity) {
     const { ...createParallelDto } = parallelDto;
-    const parallelExists = await prisma.parallels.findFirst({ where: { name: createParallelDto.name } });
+    const parallelExists = await prisma.parallels.findFirst(
+      {
+        where: {
+          AND: [
+            {
+              teacherId : createParallelDto.teacherId
+            },
+            {
+              subjectId : createParallelDto.subjectId
+            },
+          ]
+        }
+      });
     if (parallelExists) throw CustomError.badRequest('El paralelo ya existe');
 
     try {
@@ -58,7 +74,11 @@ export class ParallelService {
           id: parallel.id
         },
         include: {
-          teacher: true,
+          teacher: {
+            include:{
+              user: true,
+            }
+          },
           subject: true,
         }
       });

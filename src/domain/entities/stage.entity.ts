@@ -7,11 +7,15 @@ export class StageEntity {
     public start: Date,
     public end: Date,
     public weighing: number,
-    public requirements?: RequirementEntity[],
+    public requirements?: RequirementEntity,
   ) { }
 
   static fromObject(object: { [key: string]: any; }) {
     const { id, name, start, end, weighing, requirements } = object;
-    return new StageEntity(id, name, start, end, weighing, requirements.map((e: RequirementEntity) => RequirementEntity.fromObject(e)));
+
+    const requirementEntity = requirements ? RequirementEntity.fromObject(requirements) : undefined;
+
+
+    return new StageEntity(id, name, start, end, weighing, requirementEntity);
   }
 }

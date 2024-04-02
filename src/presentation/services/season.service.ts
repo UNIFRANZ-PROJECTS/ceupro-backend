@@ -67,7 +67,11 @@ export class SeasonService {
           id: season.id
         },
         include: {
-          stages: true
+          stages: {
+            include:{
+              requirements:true
+            }
+          }
         }
       });
 
