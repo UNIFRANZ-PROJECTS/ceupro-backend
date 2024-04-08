@@ -55,4 +55,12 @@ export class SeasonController {
       .catch(error => this.handleError(error, res));
 
   };
+
+  enableSeason = (req: Request, res: Response) => {
+
+    this.seasonService.enableSeason(req.body.user, parseInt(req.params.id))
+      .then(season => res.status(201).json(season))
+      .catch(error => this.handleError(error, res));
+
+  };
 }

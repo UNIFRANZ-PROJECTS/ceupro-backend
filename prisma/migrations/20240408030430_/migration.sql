@@ -154,6 +154,7 @@ CREATE TABLE "Seasons" (
     "price" INTEGER NOT NULL,
     "start" DATE NOT NULL,
     "end" DATE NOT NULL,
+    "enableState" BOOLEAN NOT NULL DEFAULT false,
     "state" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

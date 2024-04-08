@@ -5,13 +5,14 @@ export class SeasonDto {
     public readonly price: number,
     public readonly start: Date,
     public readonly end: Date,
+    public readonly enableState: boolean,
     public stages: number[],
   ) { }
 
 
   static body(object: { [key: string]: any }): [string?, SeasonDto?] {
 
-    const { name, price, start, end, stages } = object;
+    const { name, price, start, end, enableState, stages } = object;
 
     if (!name) return ['El nombre es obligatorio'];
     if (!price) return ['El precio es obligatorio'];
@@ -19,6 +20,6 @@ export class SeasonDto {
     if (!end) return ['La fecha fin es obligatoria'];
     if (stages.length == 0) return ['Debe ver almenos una etapa'];
 
-    return [undefined, new SeasonDto(name, price, start, end, stages)];
+    return [undefined, new SeasonDto(name, price, start, end, enableState, stages)];
   }
 }

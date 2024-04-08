@@ -13,7 +13,7 @@ export class StageEntity {
   static fromObject(object: { [key: string]: any; }) {
     const { id, name, start, end, weighing, requirements } = object;
 
-    const requirementEntity = requirements ? RequirementEntity.fromObject(requirements) : undefined;
+    const requirementEntity = requirements ? requirements.map((e:RequirementEntity)=>RequirementEntity.fromObject(e)) : undefined;
 
 
     return new StageEntity(id, name, start, end, weighing, requirementEntity);

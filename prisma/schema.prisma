@@ -161,6 +161,7 @@ model Seasons {
   price               Int                 @db.Integer
   start               DateTime            @db.Date
   end                 DateTime            @db.Date
+  enableState         Boolean             @default(false)
   state               Boolean             @default(true)
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
