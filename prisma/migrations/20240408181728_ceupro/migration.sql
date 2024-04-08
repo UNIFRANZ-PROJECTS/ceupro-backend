@@ -30,6 +30,7 @@ CREATE TABLE "Users" (
     "image" VARCHAR(255),
     "phone" VARCHAR(255) NOT NULL,
     "password" VARCHAR(255) NOT NULL,
+    "codeValidation" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -232,6 +233,9 @@ CREATE TABLE "_ProjectsToStudents" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Users_email_key" ON "Users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Users_codeValidation_key" ON "Users"("codeValidation");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Staffs_userId_key" ON "Staffs"("userId");

@@ -44,11 +44,12 @@ model Users {
   image               String?             @db.VarChar(255)
   phone               String              @db.VarChar(255)
   password            String              @db.VarChar(255)
+  codeValidation      String?             @unique
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
-  staffs              Staffs?
-  students            Students?
-  teachers            Teachers?
+  staff               Staffs?
+  student             Students?
+  teacher             Teachers?
 }
 
 model Staffs {

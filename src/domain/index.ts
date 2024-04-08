@@ -1,5 +1,5 @@
-
-export * from './errors/custom.error'
+export * from './responses/custom.error';
+export * from './responses/custom.successful';
 
 export * from './entities/user.entity';
 export * from './entities/staff.entity';
@@ -17,8 +17,9 @@ export * from './entities/inscription.entity';
 export * from './entities/parallel.entity';
 export * from './entities/project.entity';
 
-export * from './dtos/auth/register-user.dto'
-export * from './dtos/auth/login-user.dto'
+export * from './dtos/auth/register-user.dto';
+export * from './dtos/auth/login-user.dto';
+export * from './dtos/auth/validate.dto';
 export * from './dtos/user/student.dto';
 export * from './dtos/user/teacher.dto';
 export * from './dtos/role/role.dto';

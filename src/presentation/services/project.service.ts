@@ -55,6 +55,7 @@ export class ProjectService {
       const project = await prisma.projects.create({
         data: {
           ...createProjectDto,
+          staffId:user.id,
           code:'sdsss',
           students: {
             connect: students.map(studentId => ({ id: studentId })),

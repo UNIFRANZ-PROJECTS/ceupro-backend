@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { CustomError, PaginationDto, UserEntity, InscriptionDto,InscriptionEntity } from '../../domain';
+import { CustomError, PaginationDto, UserEntity, InscriptionDto, InscriptionEntity, CustomSuccessful } from '../../domain';
 
 const prisma = new PrismaClient();
 
@@ -21,13 +21,13 @@ export class InscriptionService {
           },
           include: {
             student: {
-              include:{
-                user:true,
+              include: {
+                user: true,
               }
             },
             staff: {
-              include:{
-                user:true,
+              include: {
+                user: true,
               }
             },
             season: true,
@@ -66,24 +66,23 @@ export class InscriptionService {
     if (inscriptionExists) throw CustomError.badRequest('La inscripción ya existe');
 
     try {
+
       const inscription = await prisma.inscriptions.create({
         data: {
           ...createInscriptionDto,
-          studentId:createInscriptionDto.studentId,
-          staffId:createInscriptionDto.staffId,
-          amountDelivered: 1,
-          returnedAmount: 2,
+          staffId: user.id,
+          returnedAmount: createInscriptionDto.total - createInscriptionDto.amountDelivered,
           url: ''
         },
         include: {
           student: {
-            include:{
-              user:true,
+            include: {
+              user: true,
             }
           },
           staff: {
-            include:{
-              user:true,
+            include: {
+              user: true,
             }
           },
           season: true,
@@ -111,7 +110,7 @@ export class InscriptionService {
           },
           {
             student: {
-              id: updateInscriptionDto.studentId 
+              id: updateInscriptionDto.studentId
             }
           },
           { NOT: { id: inscriptionId } },
@@ -141,7 +140,7 @@ export class InscriptionService {
           season: true,
         }
       });
-      return InscriptionEntity.fromObject(inscription);
+      return CustomSuccessful.response({ result: InscriptionEntity.fromObject(inscription) });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -169,8 +168,8 @@ export class InscriptionService {
           season: true,
         }
       });
-
-      return { msg: 'Inscripción eliminado' };
+      
+      return CustomSuccessful.response({ message: 'Inscripción eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
