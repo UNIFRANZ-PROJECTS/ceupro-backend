@@ -5,6 +5,7 @@ import {
   UserEntity,
   StageEntity,
   StageDto,
+  CustomSuccessful,
 } from '../../domain';
 
 const prisma = new PrismaClient();
@@ -28,19 +29,20 @@ export class StageService {
           },
         }),
       ]);
-
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/stage?page=${page + 1}&limit=${limit}`,
-        prev:
-          page - 1 > 0 ? `/api/stage?page=${page - 1}&limit=${limit}` : null,
-        stages: stages.map((stage) => {
-          const { ...stageEntity } = StageEntity.fromObject(stage);
-          return stageEntity;
-        }),
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/stage?page=${page + 1}&limit=${limit}`,
+          prev:
+            page - 1 > 0 ? `/api/stage?page=${page - 1}&limit=${limit}` : null,
+          stages: stages.map((stage) => {
+            const { ...stageEntity } = StageEntity.fromObject(stage);
+            return stageEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
@@ -69,7 +71,7 @@ export class StageService {
       });
 
       const { ...stageEntity } = StageEntity.fromObject(stage);
-      return stageEntity;
+      return CustomSuccessful.response({ result: stageEntity});
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -110,7 +112,8 @@ export class StageService {
           requirements: true,
         },
       });
-      return StageEntity.fromObject(stage);
+      const { ...stageEntity } = StageEntity.fromObject(stage);
+      return CustomSuccessful.response({ result: stageEntity});
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -139,8 +142,7 @@ export class StageService {
           requirements: true,
         },
       });
-
-      return { msg: 'Etapa eliminado' };
+      return CustomSuccessful.response({ message: 'Etapa eliminado'});
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }

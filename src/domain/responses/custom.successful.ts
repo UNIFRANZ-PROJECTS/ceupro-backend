@@ -14,6 +14,6 @@ export class CustomSuccessful {
     message?: string;
     result?: Object;
   }) {
-    return new CustomSuccessful(statusCode, message, result);
+    return { statusCode, message, ...result };
   }
 }

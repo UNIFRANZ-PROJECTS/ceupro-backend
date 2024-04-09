@@ -26,7 +26,7 @@ export class AuthService {
         email: loginUserDto.email,
       },
       include: {
-        staffs: {
+        staff: {
           include: {
             role: {
               include: {
@@ -35,8 +35,8 @@ export class AuthService {
             },
           },
         },
-        students:true,
-        teachers:true,
+        student:true,
+        teacher:true,
       },
     });
     console.log(user);
