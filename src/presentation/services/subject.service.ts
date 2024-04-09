@@ -1,75 +1,88 @@
 import { PrismaClient } from '@prisma/client';
-import { CustomError, PaginationDto, UserEntity, SubjectDto, TypeProjectEntity } from '../../domain';
+import {
+  CustomError,
+  PaginationDto,
+  UserEntity,
+  SubjectDto,
+  CustomSuccessful,
+  SubjectEntity,
+} from '../../domain';
 
 const prisma = new PrismaClient();
 
 export class SubjectService {
-
-  constructor() { }
+  constructor() {}
 
   async getSubjects(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, subjects] = await Promise.all([
         prisma.subjects.count({ where: { state: true } }),
         prisma.subjects.findMany({
-          where:{
-            state:true
+          where: {
+            state: true,
           },
           skip: (page - 1) * limit,
           take: limit,
         }),
       ]);
 
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/subject?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/subject?page=${(page - 1)}&limit=${limit}` : null,
-        subjects: subjects.map(subject => {
-          const { ...subjectEntity } = TypeProjectEntity.fromObject(subject);
-          return subjectEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/subject?page=${page + 1}&limit=${limit}`,
+          prev:
+            page - 1 > 0
+              ? `/api/subject?page=${page - 1}&limit=${limit}`
+              : null,
+          subjects: subjects.map((subject) => {
+            const { ...subjectEntity } = SubjectEntity.fromObject(subject);
+            return subjectEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
   }
 
   async createSubject(createSubjectDto: SubjectDto, user: UserEntity) {
-    const subjectExists = await prisma.subjects.findFirst({ where: { name: createSubjectDto.name,state:true } });
+    const subjectExists = await prisma.subjects.findFirst({
+      where: { name: createSubjectDto.name, state: true },
+    });
     if (subjectExists) throw CustomError.badRequest('La materia ya existe');
 
     try {
       const subject = await prisma.subjects.create({
         data: {
-          ...createSubjectDto
+          ...createSubjectDto,
         },
       });
 
-      const { ...subjectEntity } = TypeProjectEntity.fromObject(subject);
-      return subjectEntity;
-
+      const { ...subjectEntity } = SubjectEntity.fromObject(subject);
+      return CustomSuccessful.response({ result: subjectEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 
-  async updateSubject(updateSubjectDto: SubjectDto, user: UserEntity, subjectId: number) {
+  async updateSubject(
+    updateSubjectDto: SubjectDto,
+    user: UserEntity,
+    subjectId: number
+  ) {
     const existingsubjectWithName = await prisma.subjects.findFirst({
       where: {
-        AND: [
-          { name: updateSubjectDto.name },
-          { NOT: { id: subjectId } },
-        ],
+        AND: [{ name: updateSubjectDto.name }, { NOT: { id: subjectId } }],
       },
     });
-    if (existingsubjectWithName) throw CustomError.badRequest('Ya existe una materia con el mismo nombre');
+    if (existingsubjectWithName)
+      throw CustomError.badRequest('Ya existe una materia con el mismo nombre');
 
     const subjectExists = await prisma.subjects.findFirst({
-      where: { id: subjectId }
+      where: { id: subjectId },
     });
     if (!subjectExists) throw CustomError.badRequest('La materia no existe');
 
@@ -77,10 +90,11 @@ export class SubjectService {
       const subject = await prisma.subjects.update({
         where: { id: subjectId },
         data: {
-          ...updateSubjectDto
-        }
+          ...updateSubjectDto,
+        },
       });
-      return TypeProjectEntity.fromObject(subject);
+      const { ...subjectEntity } = SubjectEntity.fromObject(subject);
+      return CustomSuccessful.response({ result: subjectEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -98,11 +112,9 @@ export class SubjectService {
           state: false,
         },
       });
-      return { msg: 'Materia eliminado' };
+      return CustomSuccessful.response({ message: 'Materia eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

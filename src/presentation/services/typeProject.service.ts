@@ -1,63 +1,84 @@
 import { PrismaClient } from '@prisma/client';
-import { CustomError, PaginationDto, UserEntity, TypeProjectEntity, TypeProjectDto } from '../../domain';
+import {
+  CustomError,
+  PaginationDto,
+  UserEntity,
+  TypeProjectEntity,
+  TypeProjectDto,
+  CustomSuccessful,
+} from '../../domain';
 
 const prisma = new PrismaClient();
 
 export class TypeProjectService {
-
-  constructor() { }
+  constructor() {}
 
   async getTypeProjects(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, typeProjects] = await Promise.all([
         prisma.typeProjects.count({ where: { state: true } }),
         prisma.typeProjects.findMany({
-          where:{
-            state:true
+          where: {
+            state: true,
           },
           skip: (page - 1) * limit,
           take: limit,
         }),
       ]);
 
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/typeProject?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/typeProject?page=${(page - 1)}&limit=${limit}` : null,
-        typeProjects: typeProjects.map(typeProject => {
-          const { ...typeProjectEntity } = TypeProjectEntity.fromObject(typeProject);
-          return typeProjectEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/typeProject?page=${page + 1}&limit=${limit}`,
+          prev:
+            page - 1 > 0
+              ? `/api/typeProject?page=${page - 1}&limit=${limit}`
+              : null,
+          typeProjects: typeProjects.map((typeProject) => {
+            const { ...typeProjectEntity } =
+              TypeProjectEntity.fromObject(typeProject);
+            return typeProjectEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
   }
 
-  async createTypeProject(createTypeProjectDto: TypeProjectDto, user: UserEntity) {
-    const typeProjectExists = await prisma.typeProjects.findFirst({ where: { name: createTypeProjectDto.name,state:true } });
-    if (typeProjectExists) throw CustomError.badRequest('El tipo de proyecto ya existe');
+  async createTypeProject(
+    createTypeProjectDto: TypeProjectDto,
+    user: UserEntity
+  ) {
+    const typeProjectExists = await prisma.typeProjects.findFirst({
+      where: { name: createTypeProjectDto.name, state: true },
+    });
+    if (typeProjectExists)
+      throw CustomError.badRequest('El tipo de proyecto ya existe');
 
     try {
       const typeProject = await prisma.typeProjects.create({
         data: {
-          ...createTypeProjectDto
+          ...createTypeProjectDto,
         },
       });
 
-      const { ...typeProjectEntity } = TypeProjectEntity.fromObject(typeProject);
-      return typeProjectEntity;
-
+      const { ...typeProjectEntity } =
+        TypeProjectEntity.fromObject(typeProject);
+      return CustomSuccessful.response({ result: typeProjectEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 
-  async updateTypeProject(updateTypeProjectDto: TypeProjectDto, user: UserEntity, typeProjectId: number) {
+  async updateTypeProject(
+    updateTypeProjectDto: TypeProjectDto,
+    user: UserEntity,
+    typeProjectId: number
+  ) {
     const existingtypeProjectWithName = await prisma.typeProjects.findFirst({
       where: {
         AND: [
@@ -66,21 +87,27 @@ export class TypeProjectService {
         ],
       },
     });
-    if (existingtypeProjectWithName) throw CustomError.badRequest('Ya existe un tipo de proyecto con el mismo nombre');
+    if (existingtypeProjectWithName)
+      throw CustomError.badRequest(
+        'Ya existe un tipo de proyecto con el mismo nombre'
+      );
 
     const typeProjectExists = await prisma.typeProjects.findFirst({
-      where: { id: typeProjectId }
+      where: { id: typeProjectId },
     });
-    if (!typeProjectExists) throw CustomError.badRequest('El tipo de proyecto no existe');
+    if (!typeProjectExists)
+      throw CustomError.badRequest('El tipo de proyecto no existe');
 
     try {
       const typeProject = await prisma.typeProjects.update({
         where: { id: typeProjectId },
         data: {
-          ...updateTypeProjectDto
-        }
+          ...updateTypeProjectDto,
+        },
       });
-      return TypeProjectEntity.fromObject(typeProject);
+      const { ...typeProjectEntity } =
+        TypeProjectEntity.fromObject(typeProject);
+      return CustomSuccessful.response({ result: typeProjectEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -90,7 +117,8 @@ export class TypeProjectService {
     const typeProjectExists = await prisma.typeProjects.findFirst({
       where: { id: typeProjectId },
     });
-    if (!typeProjectExists) throw CustomError.badRequest('El tipo de proyecto no existe');
+    if (!typeProjectExists)
+      throw CustomError.badRequest('El tipo de proyecto no existe');
     try {
       await prisma.typeProjects.update({
         where: { id: typeProjectId },
@@ -98,11 +126,11 @@ export class TypeProjectService {
           state: false,
         },
       });
-      return { msg: 'tipo de proyecto eliminado' };
+      return CustomSuccessful.response({
+        message: 'Tipo de proyecto eliminado',
+      });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

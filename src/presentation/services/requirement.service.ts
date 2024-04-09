@@ -38,8 +38,7 @@ export class RequirementService {
               ? `/api/requirement?page=${page - 1}&limit=${limit}`
               : null,
           requirements: requirements.map((requirement) => {
-            const { ...requirementEntity } =
-              RequirementEntity.fromObject(requirement);
+            const { ...requirementEntity } = RequirementEntity.fromObject(requirement);
             return requirementEntity;
           }),
         },

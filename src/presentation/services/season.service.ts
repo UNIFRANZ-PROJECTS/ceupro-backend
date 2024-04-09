@@ -5,6 +5,7 @@ import {
   UserEntity,
   SeasonEntity,
   SeasonDto,
+  CustomSuccessful,
 } from '../../domain';
 
 const prisma = new PrismaClient();
@@ -29,18 +30,20 @@ export class SeasonService {
         }),
       ]);
 
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/season?page=${page + 1}&limit=${limit}`,
-        prev:
-          page - 1 > 0 ? `/api/season?page=${page - 1}&limit=${limit}` : null,
-        seasons: seasons.map((season) => {
-          const { ...seasonEntity } = SeasonEntity.fromObject(season);
-          return seasonEntity;
-        }),
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/season?page=${page + 1}&limit=${limit}`,
+          prev:
+            page - 1 > 0 ? `/api/season?page=${page - 1}&limit=${limit}` : null,
+          seasons: seasons.map((season) => {
+            const { ...seasonEntity } = SeasonEntity.fromObject(season);
+            return seasonEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
@@ -57,21 +60,9 @@ export class SeasonService {
       const season = await prisma.seasons.create({
         data: {
           ...createSeasonDto,
-        },
-      });
-      if (stages && stages.length > 0) {
-        await prisma.seasons.update({
-          where: { id: season.id },
-          data: {
-            stages: {
-              connect: stages.map((stageId) => ({ id: stageId })),
-            },
+          stages: {
+            connect: stages.map((stageId) => ({ id: stageId })),
           },
-        });
-      }
-      const seasonCreate = await prisma.seasons.findFirst({
-        where: {
-          id: season.id,
         },
         include: {
           stages: {
@@ -82,8 +73,8 @@ export class SeasonService {
         },
       });
 
-      const { ...seasonEntity } = SeasonEntity.fromObject(seasonCreate!);
-      return seasonEntity;
+      const { ...seasonEntity } = SeasonEntity.fromObject(season!);
+      return CustomSuccessful.response({ result: seasonEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -122,7 +113,8 @@ export class SeasonService {
           stages: true,
         },
       });
-      return SeasonEntity.fromObject(season);
+      const { ...seasonEntity } = SeasonEntity.fromObject(season!);
+      return CustomSuccessful.response({ result: seasonEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -150,14 +142,13 @@ export class SeasonService {
         },
       });
 
-      return { msg: 'Temporada eliminado' };
+      return CustomSuccessful.response({ message: 'Temporada eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 
-  async enableSeason( user: UserEntity, seasonId: number) {
-
+  async enableSeason(user: UserEntity, seasonId: number) {
     const seasonExists = await prisma.seasons.findFirst({
       where: { id: seasonId },
       include: {
@@ -177,7 +168,8 @@ export class SeasonService {
           stages: true,
         },
       });
-      return SeasonEntity.fromObject(season);
+      const { ...seasonEntity } = SeasonEntity.fromObject(season!);
+      return CustomSuccessful.response({ result: seasonEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { TeacherDto, CustomError, PaginationDto, UserEntity, TeacherEntity, } from '../../domain';
+import { TeacherDto, CustomError, PaginationDto, UserEntity, TeacherEntity, CustomSuccessful, } from '../../domain';
 import { bcryptAdapter } from '../../config';
 
 const prisma = new PrismaClient();
@@ -25,7 +25,8 @@ export class TeacherService {
           }
         }),
       ]);
-      return {
+      return CustomSuccessful.response({
+        result: {
         page: page,
         limit: limit,
         total: total,
@@ -35,7 +36,7 @@ export class TeacherService {
           const { ...teacherEntity } = TeacherEntity.fromObject(teacher);
           return teacherEntity;
         })
-      };
+      }});
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
@@ -76,7 +77,7 @@ export class TeacherService {
         }
       });
 
-      if (staffExists) throw CustomError.badRequest('El staff ya existe');
+      if (staffExists) throw CustomError.badRequest('El docente ya existe');
 
       const teacher = await prisma.teachers.create({
         data: {
@@ -91,7 +92,7 @@ export class TeacherService {
 
 
       const { ...teacherEntity } = TeacherEntity.fromObject(teacher);
-      return teacherEntity;
+      return CustomSuccessful.response({ result: teacherEntity });
 
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
@@ -105,7 +106,7 @@ export class TeacherService {
         user: true,
       }
     });
-    if (!teacherExists) throw CustomError.badRequest('El staff no existe');
+    if (!teacherExists) throw CustomError.badRequest('El docente no existe');
 
     try {
 
@@ -117,7 +118,7 @@ export class TeacherService {
         }
       });
 
-      const staff = await prisma.teachers.update({
+      const teacher = await prisma.teachers.update({
         where: { id: staffId },
         data: {
           ...updateTeacherDto,
@@ -127,7 +128,8 @@ export class TeacherService {
         }
       });
 
-      return TeacherEntity.fromObject(staff);
+      const { ...teacherEntity } = TeacherEntity.fromObject(teacher);
+      return CustomSuccessful.response({ result: teacherEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -137,7 +139,7 @@ export class TeacherService {
     const teacherExists = await prisma.teachers.findFirst({
       where: { id: categoryId },
     });
-    if (!teacherExists) throw CustomError.badRequest('El staff no existe');
+    if (!teacherExists) throw CustomError.badRequest('El docente no existe');
     try {
       await prisma.teachers.update({
         where: { id: categoryId },
@@ -145,7 +147,7 @@ export class TeacherService {
           state: false,
         },
       });
-      return { msg: 'Staff eliminado' };
+      return CustomSuccessful.response({ message: 'Docente eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }

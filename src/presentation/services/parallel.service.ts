@@ -1,46 +1,56 @@
 import { PrismaClient } from '@prisma/client';
-import { CustomError, PaginationDto, UserEntity, ParallelDto, ParallelEntity } from '../../domain';
+import {
+  CustomError,
+  PaginationDto,
+  UserEntity,
+  ParallelDto,
+  ParallelEntity,
+  CustomSuccessful,
+} from '../../domain';
 
 const prisma = new PrismaClient();
 
 export class ParallelService {
-
-  constructor() { }
+  constructor() {}
 
   async getParallels(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, parallels] = await Promise.all([
         prisma.parallels.count({ where: { state: true } }),
         prisma.parallels.findMany({
           skip: (page - 1) * limit,
           take: limit,
           where: {
-            state: true
+            state: true,
           },
           include: {
             teacher: {
-              include:{
+              include: {
                 user: true,
-              }
+              },
             },
             subject: true,
-          }
+          },
         }),
       ]);
 
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/parallel?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/parallel?page=${(page - 1)}&limit=${limit}` : null,
-        parallels: parallels.map(parallel => {
-          const { ...parallelEntity } = ParallelEntity.fromObject(parallel);
-          return parallelEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/parallel?page=${page + 1}&limit=${limit}`,
+          prev:
+            page - 1 > 0
+              ? `/api/parallel?page=${page - 1}&limit=${limit}`
+              : null,
+          parallels: parallels.map((parallel) => {
+            const { ...parallelEntity } = ParallelEntity.fromObject(parallel);
+            return parallelEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
@@ -48,66 +58,61 @@ export class ParallelService {
 
   async createParallel(parallelDto: ParallelDto, user: UserEntity) {
     const { ...createParallelDto } = parallelDto;
-    const parallelExists = await prisma.parallels.findFirst(
-      {
-        where: {
-          AND: [
-            {
-              teacherId : createParallelDto.teacherId
-            },
-            {
-              subjectId : createParallelDto.subjectId
-            },
-          ]
-        }
-      });
+    const parallelExists = await prisma.parallels.findFirst({
+      where: {
+        AND: [
+          {
+            teacherId: createParallelDto.teacherId,
+          },
+          {
+            subjectId: createParallelDto.subjectId,
+          },
+        ],
+      },
+    });
     if (parallelExists) throw CustomError.badRequest('El paralelo ya existe');
 
     try {
       const parallel = await prisma.parallels.create({
         data: {
-          ...createParallelDto
-        },
-      });
-      const parallelCreate = await prisma.parallels.findFirst({
-        where: {
-          id: parallel.id
+          ...createParallelDto,
         },
         include: {
           teacher: {
-            include:{
+            include: {
               user: true,
-            }
+            },
           },
           subject: true,
-        }
+        },
       });
 
-      const { ...parallelEntity } = ParallelEntity.fromObject(parallelCreate!);
-      return parallelEntity;
-
+      const { ...parallelEntity } = ParallelEntity.fromObject(parallel!);
+      return CustomSuccessful.response({ result: parallelEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 
-  async updateParallel(parallelDto: ParallelDto, user: UserEntity, parallelId: number) {
+  async updateParallel(
+    parallelDto: ParallelDto,
+    user: UserEntity,
+    parallelId: number
+  ) {
     const { ...updateParallelDto } = parallelDto;
     const existingParallelWithName = await prisma.parallels.findFirst({
       where: {
-        AND: [
-          { name: updateParallelDto.name },
-          { NOT: { id: parallelId } },
-        ],
+        AND: [{ name: updateParallelDto.name }, { NOT: { id: parallelId } }],
       },
     });
-    if (existingParallelWithName) throw CustomError.badRequest('Ya existe un paralelo con el mismo nombre');
+    if (existingParallelWithName)
+      throw CustomError.badRequest('Ya existe un paralelo con el mismo nombre');
     const parallelExists = await prisma.parallels.findFirst({
       where: { id: parallelId },
       include: {
         teacher: true,
         subject: true,
-      }
+      },
     });
     if (!parallelExists) throw CustomError.badRequest('El paralelo no existe');
 
@@ -120,9 +125,10 @@ export class ParallelService {
         include: {
           teacher: true,
           subject: true,
-        }
+        },
       });
-      return ParallelEntity.fromObject(parallel);
+      const { ...parallelEntity } = ParallelEntity.fromObject(parallel!);
+      return CustomSuccessful.response({ result: parallelEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -134,7 +140,7 @@ export class ParallelService {
       include: {
         teacher: true,
         subject: true,
-      }
+      },
     });
     if (!parallelExists) throw CustomError.badRequest('El paralelo no existe');
     try {
@@ -146,14 +152,12 @@ export class ParallelService {
         include: {
           teacher: true,
           subject: true,
-        }
+        },
       });
 
-      return { msg: 'Paralelo eliminado' };
+      return CustomSuccessful.response({ message: 'Paralelo eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

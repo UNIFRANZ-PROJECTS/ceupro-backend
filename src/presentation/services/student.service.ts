@@ -1,17 +1,22 @@
 import { PrismaClient } from '@prisma/client';
-import { StudentDto, CustomError, PaginationDto, UserEntity, StudentEntity, } from '../../domain';
+import {
+  StudentDto,
+  CustomError,
+  PaginationDto,
+  UserEntity,
+  StudentEntity,
+  CustomSuccessful,
+} from '../../domain';
 import { bcryptAdapter } from '../../config';
 
 const prisma = new PrismaClient();
 
 export class StudentService {
-
-  constructor() { }
+  constructor() {}
 
   async getStudents(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, students] = await Promise.all([
         prisma.students.count({ where: { state: true } }),
         prisma.students.findMany({
@@ -22,33 +27,36 @@ export class StudentService {
           take: limit,
           include: {
             user: true,
-          }
+          },
         }),
       ]);
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/student?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/student?page=${(page - 1)}&limit=${limit}` : null,
-        students: students.map(student => {
-          const { ...studentEntity } = StudentEntity.fromObject(student);
-          return studentEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/student?page=${page + 1}&limit=${limit}`,
+          prev:
+            page - 1 > 0
+              ? `/api/student?page=${page - 1}&limit=${limit}`
+              : null,
+          students: students.map((student) => {
+            const { ...studentEntity } = StudentEntity.fromObject(student);
+            return studentEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
   }
 
   async createStudent(createStudentDto: StudentDto, user: UserEntity) {
-
     try {
-
       const userExists = await prisma.users.findFirst({
         where: {
-          email: createStudentDto.email
-        }
+          email: createStudentDto.email,
+        },
       });
 
       let userId: number;
@@ -70,64 +78,66 @@ export class StudentService {
       const staffExists = await prisma.students.findFirst({
         where: {
           user: {
-            email: createStudentDto.email
+            email: createStudentDto.email,
           },
-          state: true
-        }
+          state: true,
+        },
       });
 
       if (staffExists) throw CustomError.badRequest('El estudiante ya existe');
 
       const student = await prisma.students.create({
         data: {
-          code:createStudentDto.code,
+          code: createStudentDto.code,
           userId: userId,
         },
         include: {
           user: true,
-        }
+        },
       });
-      console.log(student)
-
+      console.log(student);
 
       const { ...studentEntity } = StudentEntity.fromObject(student);
-      return studentEntity;
-
+      return CustomSuccessful.response({ result: studentEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 
-  async updateStudent(updateStudentDto: StudentDto, user: UserEntity, studentId: number) {
+  async updateStudent(
+    updateStudentDto: StudentDto,
+    user: UserEntity,
+    studentId: number
+  ) {
     const studentExists = await prisma.students.findFirst({
       where: { id: studentId },
       include: {
         user: true,
-      }
+      },
     });
     if (!studentExists) throw CustomError.badRequest('El estudiante no existe');
 
     try {
-
       await prisma.users.update({
         where: { id: studentExists.userId },
         data: {
           ...updateStudentDto,
           password: await bcryptAdapter.hash(studentExists.user.password),
-        }
+        },
       });
 
-      const staff = await prisma.students.update({
+      const student = await prisma.students.update({
         where: { id: studentId },
         data: {
           ...updateStudentDto,
         },
         include: {
           user: true,
-        }
+        },
       });
 
-      return StudentEntity.fromObject(staff);
+      const { ...studentEntity } = StudentEntity.fromObject(student);
+      return CustomSuccessful.response({ result: studentEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -145,11 +155,9 @@ export class StudentService {
           state: false,
         },
       });
-      return { msg: 'estudiante eliminado' };
+      return CustomSuccessful.response({ message: 'Estudiante eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

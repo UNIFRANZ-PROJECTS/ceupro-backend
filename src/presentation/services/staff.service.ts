@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { StaffDto, CustomError, PaginationDto, StaffEntity, UserEntity, } from '../../domain';
+import { StaffDto, CustomError, PaginationDto, StaffEntity, UserEntity, CustomSuccessful, } from '../../domain';
 import { bcryptAdapter } from '../../config';
 
 const prisma = new PrismaClient();
@@ -26,7 +26,9 @@ export class StaffService {
           }
         }),
       ]);
-      return {
+
+      return CustomSuccessful.response({
+        result: {
         page: page,
         limit: limit,
         total: total,
@@ -36,7 +38,7 @@ export class StaffService {
           const { ...staffEntity } = StaffEntity.fromObject(staff);
           return staffEntity;
         })
-      };
+      }});
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
@@ -93,7 +95,7 @@ export class StaffService {
 
 
       const { ...staffEntity } = StaffEntity.fromObject(staff);
-      return staffEntity;
+      return CustomSuccessful.response({ result: staffEntity });
 
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
@@ -132,7 +134,8 @@ export class StaffService {
         }
       });
 
-      return StaffEntity.fromObject(staff);
+      const { ...staffEntity } = StaffEntity.fromObject(staff);
+      return CustomSuccessful.response({ result: staffEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -150,7 +153,7 @@ export class StaffService {
           state: false,
         },
       });
-      return { msg: 'Staff eliminado' };
+      return CustomSuccessful.response({ message: 'Staff eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }

@@ -1,51 +1,62 @@
 import { PrismaClient } from '@prisma/client';
-import { CustomError, PaginationDto, UserEntity, InscriptionDto, InscriptionEntity, CustomSuccessful } from '../../domain';
+import {
+  CustomError,
+  PaginationDto,
+  UserEntity,
+  InscriptionDto,
+  InscriptionEntity,
+  CustomSuccessful,
+} from '../../domain';
 
 const prisma = new PrismaClient();
 
 export class InscriptionService {
-
-  constructor() { }
+  constructor() {}
 
   async getInscriptions(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, inscriptions] = await Promise.all([
         prisma.inscriptions.count({ where: { state: true } }),
         prisma.inscriptions.findMany({
           skip: (page - 1) * limit,
           take: limit,
           where: {
-            state: true
+            state: true,
           },
           include: {
             student: {
               include: {
                 user: true,
-              }
+              },
             },
             staff: {
               include: {
                 user: true,
-              }
+              },
             },
             season: true,
-          }
+          },
         }),
       ]);
 
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/inscription?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/inscription?page=${(page - 1)}&limit=${limit}` : null,
-        inscriptions: inscriptions.map(inscription => {
-          const { ...inscriptionEntity } = InscriptionEntity.fromObject(inscription);
-          return inscriptionEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/inscription?page=${page + 1}&limit=${limit}`,
+          prev:
+            page - 1 > 0
+              ? `/api/inscription?page=${page - 1}&limit=${limit}`
+              : null,
+          inscriptions: inscriptions.map((inscription) => {
+            const { ...inscriptionEntity } =
+              InscriptionEntity.fromObject(inscription);
+            return inscriptionEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
@@ -56,49 +67,55 @@ export class InscriptionService {
     const inscriptionExists = await prisma.inscriptions.findFirst({
       where: {
         season: {
-          id: createInscriptionDto.seasonId
+          id: createInscriptionDto.seasonId,
         },
         student: {
-          id: createInscriptionDto.studentId
+          id: createInscriptionDto.studentId,
         },
-      }
+      },
     });
-    if (inscriptionExists) throw CustomError.badRequest('La inscripción ya existe');
+    if (inscriptionExists)
+      throw CustomError.badRequest('La inscripción ya existe');
 
     try {
-
       const inscription = await prisma.inscriptions.create({
         data: {
           ...createInscriptionDto,
           staffId: user.id,
-          returnedAmount: createInscriptionDto.total - createInscriptionDto.amountDelivered,
-          url: ''
+          returnedAmount:
+            createInscriptionDto.total - createInscriptionDto.amountDelivered,
+          url: '',
         },
         include: {
           student: {
             include: {
               user: true,
-            }
+            },
           },
           staff: {
             include: {
               user: true,
-            }
+            },
           },
           season: true,
-        }
+        },
       });
-      console.log(inscription)
+      console.log(inscription);
 
-      const { ...inscriptionEntity } = InscriptionEntity.fromObject(inscription!);
-      return inscriptionEntity;
-
+      const { ...inscriptionEntity } = InscriptionEntity.fromObject(
+        inscription!
+      );
+      return CustomSuccessful.response({ result: inscriptionEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 
-  async updateInscription(inscriptionDto: InscriptionDto, user: UserEntity, inscriptionId: number) {
+  async updateInscription(
+    inscriptionDto: InscriptionDto,
+    user: UserEntity,
+    inscriptionId: number
+  ) {
     const { ...updateInscriptionDto } = inscriptionDto;
     const existingInscriptionWithName = await prisma.inscriptions.findFirst({
       where: {
@@ -106,27 +123,31 @@ export class InscriptionService {
           {
             season: {
               id: updateInscriptionDto.seasonId,
-            }
+            },
           },
           {
             student: {
-              id: updateInscriptionDto.studentId
-            }
+              id: updateInscriptionDto.studentId,
+            },
           },
           { NOT: { id: inscriptionId } },
-        ]
+        ],
       },
     });
-    if (existingInscriptionWithName) throw CustomError.badRequest('Ya existe una inscripción con el estudiante y en la misma temporada');
+    if (existingInscriptionWithName)
+      throw CustomError.badRequest(
+        'Ya existe una inscripción con el estudiante y en la misma temporada'
+      );
     const inscriptionExists = await prisma.inscriptions.findFirst({
       where: { id: inscriptionId },
       include: {
         student: true,
         staff: true,
         season: true,
-      }
+      },
     });
-    if (!inscriptionExists) throw CustomError.badRequest('La inscripción no existe');
+    if (!inscriptionExists)
+      throw CustomError.badRequest('La inscripción no existe');
 
     try {
       const inscription = await prisma.inscriptions.update({
@@ -138,9 +159,12 @@ export class InscriptionService {
           student: true,
           staff: true,
           season: true,
-        }
+        },
       });
-      return CustomSuccessful.response({ result: InscriptionEntity.fromObject(inscription) });
+      const { ...inscriptionEntity } = InscriptionEntity.fromObject(
+        inscription!
+      );
+      return CustomSuccessful.response({ result: inscriptionEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -153,9 +177,10 @@ export class InscriptionService {
         student: true,
         staff: true,
         season: true,
-      }
+      },
     });
-    if (!inscriptionExists) throw CustomError.badRequest('La inscripción no existe');
+    if (!inscriptionExists)
+      throw CustomError.badRequest('La inscripción no existe');
     try {
       await prisma.inscriptions.update({
         where: { id: inscriptionId },
@@ -166,14 +191,12 @@ export class InscriptionService {
           student: true,
           staff: true,
           season: true,
-        }
+        },
       });
-      
+
       return CustomSuccessful.response({ message: 'Inscripción eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-
