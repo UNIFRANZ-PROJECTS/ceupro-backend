@@ -1,4 +1,4 @@
-import { StaffAuthEntity, StudentEntity, TeacherEntity } from '..';
+import { StaffAuthEntity, StudentAuthEntity, StudentEntity, TeacherAuthEntity, TeacherEntity } from '..';
 import { CustomError } from '../responses/custom.error';
 
 export class UserEntity {
@@ -12,8 +12,8 @@ export class UserEntity {
     public codeValidation?: string,
     public image?: string,
     public staffs?: StaffAuthEntity,
-    public students?: StudentEntity,
-    public teachers?: TeacherEntity,
+    public students?: StudentAuthEntity,
+    public teachers?: TeacherAuthEntity,
   ) {}
 
   static fromObjectAuth(object: { [key: string]: any }) {
@@ -39,16 +39,16 @@ export class UserEntity {
     throw CustomError.badRequest('Falta la validación del correo');
   if (!password) throw CustomError.badRequest('Falta la contraseña');
   
-  const staffEntity = staff
-      ? StaffAuthEntity.fromObjectAuth(staff)
+  const staffAuthEntity = staff
+      ? StaffAuthEntity.fromObject(staff)
       : undefined;
     
-    const studentEntity = student
-    ? StudentEntity.fromObject(student)
+    const studentAuthEntity = student
+    ? StudentAuthEntity.fromObject(student)
     : undefined;
 
-    const teacherEntity = teacher
-    ? TeacherEntity.fromObject(teacher)
+    const teacherAuthEntity = teacher
+    ? TeacherAuthEntity.fromObject(teacher)
     : undefined;
     return new UserEntity(
       id,
@@ -59,9 +59,9 @@ export class UserEntity {
       password,
       codeValidation,
       image,
-      staffEntity,
-      studentEntity,
-      teacherEntity,
+      staffAuthEntity,
+      studentAuthEntity,
+      teacherAuthEntity,
     );
   }
 

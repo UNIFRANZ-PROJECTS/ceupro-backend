@@ -5,7 +5,7 @@ export class StudentAuthEntity {
     public id: number,
     public code: string,
   ) {}
-  static fromObjectAuth(object: { [key: string]: any }) {
+  static fromObject(object: { [key: string]: any }) {
     const { id, code } = object;
     return new StudentAuthEntity(id, code);
   }

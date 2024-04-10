@@ -2,7 +2,7 @@ import { RoleEntity, UserEntity } from '..';
 
 export class StaffAuthEntity {
   constructor(public id: number, public role?: RoleEntity) {}
-  static fromObjectAuth(object: { [key: string]: any }) {
+  static fromObject(object: { [key: string]: any }) {
     const { id, role } = object;
     return new StaffAuthEntity(id, RoleEntity.fromObject(role));
   }

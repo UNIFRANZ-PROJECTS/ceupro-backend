@@ -7,11 +7,12 @@ import {
   InscriptionEntity,
   CustomSuccessful,
 } from '../../domain';
+import { generatePdf } from '../../config';
 
 const prisma = new PrismaClient();
 
 export class InscriptionService {
-  constructor() {}
+  constructor() { }
 
   async getInscriptions(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
@@ -112,11 +113,14 @@ export class InscriptionService {
           season: true,
         },
       });
-      console.log(inscription);
-
-      const { ...inscriptionEntity } =
-        InscriptionEntity.fromObject(inscription);
-      return CustomSuccessful.response({ result: inscriptionEntity });
+      const { ...inscriptionEntity } = await InscriptionEntity.fromObject(inscription);
+      const document = await generatePdf(inscriptionEntity);
+      return CustomSuccessful.response({
+        result: {
+          ...inscriptionEntity,
+          document
+        }
+      });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }

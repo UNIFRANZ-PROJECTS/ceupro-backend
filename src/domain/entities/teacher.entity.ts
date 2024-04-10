@@ -5,7 +5,7 @@ export class TeacherAuthEntity {
     public id: number,
     public ci: string,
   ) {}
-  static fromObjectAuth(object: { [key: string]: any }) {
+  static fromObject(object: { [key: string]: any }) {
     const { id, ci } = object;
     return new TeacherAuthEntity(id, ci);
   }
