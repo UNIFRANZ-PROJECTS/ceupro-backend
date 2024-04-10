@@ -57,17 +57,29 @@ export class ProjectService {
   }
 
   async createProject(projectDto: ProjectDto, user: UserEntity) {
-    const { students, ...createProjectDto } = projectDto;
-    const projectExists = await prisma.projects.findFirst({
-      where: { title: createProjectDto.title },
-    });
-    if (projectExists) throw CustomError.badRequest('El proyecto ya existe');
-
     try {
+      const season = await prisma.seasons.findFirst({
+        where: { enableState: true },
+        include: {
+          stages: {
+            include: {
+              requirements: true,
+            },
+          },
+        },
+      });
+      if (!season) throw CustomError.badRequest('Habilite una temporada');
+      const { students, ...createProjectDto } = projectDto;
+      const projectExists = await prisma.projects.findFirst({
+        where: { title: createProjectDto.title },
+      });
+      if (projectExists) throw CustomError.badRequest('El proyecto ya existe');
+
       const project = await prisma.projects.create({
         data: {
           ...createProjectDto,
           staffId: user.id,
+          seasonId: season.id,
           code: 'sdsss',
           students: {
             connect: students.map((studentId) => ({ id: studentId })),
@@ -94,28 +106,30 @@ export class ProjectService {
     user: UserEntity,
     projectId: number
   ) {
-    const { students, ...updateProjectDto } = projectDto;
-    const existingProjectWithName = await prisma.projects.findFirst({
-      where: {
-        AND: [{ title: updateProjectDto.title }, { NOT: { id: projectId } }],
-      },
-    });
-    if (existingProjectWithName)
-      throw CustomError.badRequest('Ya existe un proyecto con el mismo nombre');
-    const projectExists = await prisma.projects.findFirst({
-      where: { id: projectId },
-      include: {
-        category: true,
-        typeProject: true,
-        students: true,
-        season: true,
-        staff: true,
-        projectHistories: true,
-      },
-    });
-    if (!projectExists) throw CustomError.badRequest('El proyecto no existe');
-
     try {
+      const { students, ...updateProjectDto } = projectDto;
+      const existingProjectWithName = await prisma.projects.findFirst({
+        where: {
+          AND: [{ title: updateProjectDto.title }, { NOT: { id: projectId } }],
+        },
+      });
+      if (existingProjectWithName)
+        throw CustomError.badRequest(
+          'Ya existe un proyecto con el mismo nombre'
+        );
+      const projectExists = await prisma.projects.findFirst({
+        where: { id: projectId },
+        include: {
+          category: true,
+          typeProject: true,
+          students: true,
+          season: true,
+          staff: true,
+          projectHistories: true,
+        },
+      });
+      if (!projectExists) throw CustomError.badRequest('El proyecto no existe');
+
       const project = await prisma.projects.update({
         where: { id: projectId },
         data: {

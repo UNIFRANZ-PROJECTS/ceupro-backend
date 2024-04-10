@@ -1,16 +1,28 @@
 import { UserEntity } from "..";
 
-export class StudentEntity {
+export class StudentAuthEntity {
   constructor(
     public id: number,
     public code: string,
-    public user?: UserEntity,
-  ) { }
+  ) {}
+  static fromObjectAuth(object: { [key: string]: any }) {
+    const { id, code } = object;
+    return new StudentAuthEntity(id, code);
+  }
+}
 
-  static fromObject(object: { [key: string]: any; }) {
+export class StudentEntity extends UserEntity {
+  public readonly code: string;
+
+  constructor(id: number, code: string, user: UserEntity) {
+    super(user.id, user.name, user.lastName, user.email);
+    this.id = id;
+    this.code = code;
+  }
+  static fromObject(object: { [key: string]: any }) {
     const { id, code, user } = object;
 
-    const userEntity = user ? UserEntity.fromObject(user) : undefined;
+    const userEntity = UserEntity.fromObject(user);
 
     return new StudentEntity(id, code, userEntity);
   }

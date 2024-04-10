@@ -65,10 +65,7 @@ export class AuthService {
         result: { token },
       });
     }
-
-    const { emailValidated, password, ...userEntity } =
-      UserEntity.fromObjectAuth(user);
-
+    const { emailValidated, password, ...userEntity } = UserEntity.fromObjectAuth(user);
 
     return CustomSuccessful.response({
       result: {

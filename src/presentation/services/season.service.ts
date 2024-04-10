@@ -13,6 +13,26 @@ const prisma = new PrismaClient();
 export class SeasonService {
   constructor() {}
 
+  async getSeasonEnable() {
+    try {
+      const season = await prisma.seasons.findFirst({
+        where: { enableState: true },
+        include: {
+          stages: {
+            include: {
+              requirements: true,
+            },
+          },
+        },
+      });
+      if(!season)throw CustomError.badRequest('Habilite una temporada');
+      const { ...seasonEntity } = SeasonEntity.fromObject(season);
+      return CustomSuccessful.response({ result: seasonEntity });
+    } catch (error) {
+      throw CustomError.internalServer(`${error}`);
+    }
+  }
+
   async getSeasons(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {

@@ -14,7 +14,6 @@ export class InscriptionEntity {
 
   static fromObject(object: { [key: string]: any; }) {
     const { id, total, amountDelivered, returnedAmount, url, student, staff, season, } = object;
-
     const studentEntity = StudentEntity.fromObject(student);
     const staffEntity = StaffEntity.fromObject(staff);
     const seasonEntity = SeasonEntity.fromObject(season);

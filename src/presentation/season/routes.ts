@@ -10,6 +10,7 @@ export class SeasonRoutes {
     const controller = new SeasonController(seasonService);
 
     // rutas
+    router.get('/enable', [AuthMiddleware.validateJWT], controller.getSeasonEnable);
     router.get('/', [AuthMiddleware.validateJWT], controller.getSeasons);
     router.post('/', [AuthMiddleware.validateJWT], controller.createSeason);
     router.put('/:id', [AuthMiddleware.validateJWT], controller.updateSeason);
@@ -18,7 +19,6 @@ export class SeasonRoutes {
       [AuthMiddleware.validateJWT],
       controller.deleteSeason
     );
-    
     router.put(
       '/enable/:id',
       [AuthMiddleware.validateJWT],

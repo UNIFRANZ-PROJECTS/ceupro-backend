@@ -63,27 +63,39 @@ export class InscriptionService {
   }
 
   async createInscription(inscriptionDto: InscriptionDto, user: UserEntity) {
-    const { ...createInscriptionDto } = inscriptionDto;
-    const inscriptionExists = await prisma.inscriptions.findFirst({
-      where: {
-        season: {
-          id: createInscriptionDto.seasonId,
-        },
-        student: {
-          id: createInscriptionDto.studentId,
-        },
-      },
-    });
-    if (inscriptionExists)
-      throw CustomError.badRequest('La inscripción ya existe');
-
     try {
+      const season = await prisma.seasons.findFirst({
+        where: { enableState: true },
+        include: {
+          stages: {
+            include: {
+              requirements: true,
+            },
+          },
+        },
+      });
+      if (!season) throw CustomError.badRequest('Habilite una temporada');
+      const { ...createInscriptionDto } = inscriptionDto;
+      const inscriptionExists = await prisma.inscriptions.findFirst({
+        where: {
+          season: {
+            id: season.id,
+          },
+          student: {
+            id: createInscriptionDto.studentId,
+          },
+        },
+      });
+      if (inscriptionExists)
+        throw CustomError.badRequest('La inscripción ya existe');
+
       const inscription = await prisma.inscriptions.create({
         data: {
           ...createInscriptionDto,
+          total: season.price,
           staffId: user.id,
-          returnedAmount:
-            createInscriptionDto.total - createInscriptionDto.amountDelivered,
+          seasonId: season.id,
+          returnedAmount: season.price - createInscriptionDto.amountDelivered,
           url: '',
         },
         include: {
@@ -102,9 +114,8 @@ export class InscriptionService {
       });
       console.log(inscription);
 
-      const { ...inscriptionEntity } = InscriptionEntity.fromObject(
-        inscription!
-      );
+      const { ...inscriptionEntity } =
+        InscriptionEntity.fromObject(inscription);
       return CustomSuccessful.response({ result: inscriptionEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
@@ -116,44 +127,58 @@ export class InscriptionService {
     user: UserEntity,
     inscriptionId: number
   ) {
-    const { ...updateInscriptionDto } = inscriptionDto;
-    const existingInscriptionWithName = await prisma.inscriptions.findFirst({
-      where: {
-        AND: [
-          {
-            season: {
-              id: updateInscriptionDto.seasonId,
-            },
-          },
-          {
-            student: {
-              id: updateInscriptionDto.studentId,
-            },
-          },
-          { NOT: { id: inscriptionId } },
-        ],
-      },
-    });
-    if (existingInscriptionWithName)
-      throw CustomError.badRequest(
-        'Ya existe una inscripción con el estudiante y en la misma temporada'
-      );
-    const inscriptionExists = await prisma.inscriptions.findFirst({
-      where: { id: inscriptionId },
-      include: {
-        student: true,
-        staff: true,
-        season: true,
-      },
-    });
-    if (!inscriptionExists)
-      throw CustomError.badRequest('La inscripción no existe');
-
     try {
+      const season = await prisma.seasons.findFirst({
+        where: { enableState: true },
+        include: {
+          stages: {
+            include: {
+              requirements: true,
+            },
+          },
+        },
+      });
+      if (!season) throw CustomError.badRequest('Habilite una temporada');
+      const { ...updateInscriptionDto } = inscriptionDto;
+      const existingInscriptionWithName = await prisma.inscriptions.findFirst({
+        where: {
+          AND: [
+            {
+              season: {
+                id: season.id,
+              },
+            },
+            {
+              student: {
+                id: updateInscriptionDto.studentId,
+              },
+            },
+            { NOT: { id: inscriptionId } },
+          ],
+        },
+      });
+      if (existingInscriptionWithName)
+        throw CustomError.badRequest(
+          'Ya existe una inscripción con el estudiante y en la misma temporada'
+        );
+      const inscriptionExists = await prisma.inscriptions.findFirst({
+        where: { id: inscriptionId },
+        include: {
+          student: true,
+          staff: true,
+          season: true,
+        },
+      });
+      if (!inscriptionExists)
+        throw CustomError.badRequest('La inscripción no existe');
+
       const inscription = await prisma.inscriptions.update({
         where: { id: inscriptionId },
         data: {
           ...updateInscriptionDto,
+          total: season.price,
+          seasonId: season.id,
+          returnedAmount: season.price - updateInscriptionDto.amountDelivered,
         },
         include: {
           student: true,
