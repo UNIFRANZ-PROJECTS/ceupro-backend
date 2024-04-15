@@ -32,7 +32,9 @@ export class ProjectController {
     if (error) return res.status(400).json({ error });
 
     this.projectService.createProject(createParallelDto!, req.body.user)
-      .then(project => res.status(201).json(project))
+      .then(project => {
+        res.setHeader('Content-Type', 'application/json');
+        res.status(201).json(project)})
       .catch(error => this.handleError(error, res));
 
   };

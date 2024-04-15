@@ -8,7 +8,7 @@ export class SeasonEntity {
     public start: Date,
     public end: Date,
     public enableState: boolean,
-    public stages?: StageEntity,
+    public stages?: StageEntity[],
   ) { }
 
   static fromObject(object: { [key: string]: any; }) {

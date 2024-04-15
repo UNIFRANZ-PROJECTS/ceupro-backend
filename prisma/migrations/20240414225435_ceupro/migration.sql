@@ -214,6 +214,12 @@ CREATE TABLE "_PermissionsToRoles" (
 );
 
 -- CreateTable
+CREATE TABLE "_ParallelsToProjects" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "_RequirementsToStages" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
@@ -260,6 +266,12 @@ CREATE UNIQUE INDEX "_PermissionsToRoles_AB_unique" ON "_PermissionsToRoles"("A"
 
 -- CreateIndex
 CREATE INDEX "_PermissionsToRoles_B_index" ON "_PermissionsToRoles"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_ParallelsToProjects_AB_unique" ON "_ParallelsToProjects"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_ParallelsToProjects_B_index" ON "_ParallelsToProjects"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_RequirementsToStages_AB_unique" ON "_RequirementsToStages"("A", "B");
@@ -335,6 +347,12 @@ ALTER TABLE "_PermissionsToRoles" ADD CONSTRAINT "_PermissionsToRoles_A_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "_PermissionsToRoles" ADD CONSTRAINT "_PermissionsToRoles_B_fkey" FOREIGN KEY ("B") REFERENCES "Roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ParallelsToProjects" ADD CONSTRAINT "_ParallelsToProjects_A_fkey" FOREIGN KEY ("A") REFERENCES "Parallels"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ParallelsToProjects" ADD CONSTRAINT "_ParallelsToProjects_B_fkey" FOREIGN KEY ("B") REFERENCES "Projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_RequirementsToStages" ADD CONSTRAINT "_RequirementsToStages_A_fkey" FOREIGN KEY ("A") REFERENCES "Requirements"("id") ON DELETE CASCADE ON UPDATE CASCADE;

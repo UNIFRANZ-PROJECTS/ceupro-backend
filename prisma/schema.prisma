@@ -113,6 +113,7 @@ model Parallels {
   teacher             Teachers            @relation(fields: [teacherId], references: [id])
   subject             Subjects            @relation(fields: [subjectId], references: [id])
   projectHistories    ProjectHistories[]
+  projects            Projects[]
 }
 
 model Stages {
@@ -205,6 +206,7 @@ model Projects {
   season              Seasons             @relation(fields: [seasonId], references: [id])
   students            Students[]
   projectHistories    ProjectHistories[]
+  parallels           Parallels[]
 }
 
 model ProjectHistories {

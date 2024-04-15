@@ -7,3 +7,4 @@ export * from './convert.nro-string';
 
 
 export * from './documents/pdf/inscription.pdf';
+export * from './documents/xlsx/projectFollowing.xlsx';

@@ -7,6 +7,8 @@ import {
   ProjectEntity,
   CustomSuccessful,
 } from '../../domain';
+import { projectFollowingXlsx } from '../../config';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -27,10 +29,36 @@ export class ProjectService {
           include: {
             category: true,
             typeProject: true,
-            students: true,
-            season: true,
-            staff: true,
+            students: {
+              include: {
+                user: true,
+              },
+            },
+            season: {
+              include: {
+                stages: {
+                  include: {
+                    requirements: true,
+                  },
+                },
+              },
+            },
+            staff: {
+              include: {
+                user: true,
+              },
+            },
             projectHistories: true,
+            parallels: {
+              include: {
+                subject: true,
+                teacher: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
           },
         }),
       ]);
@@ -69,7 +97,7 @@ export class ProjectService {
         },
       });
       if (!season) throw CustomError.badRequest('Habilite una temporada');
-      const { students, ...createProjectDto } = projectDto;
+      const { students, parallels, ...createProjectDto } = projectDto;
       const projectExists = await prisma.projects.findFirst({
         where: { title: createProjectDto.title },
       });
@@ -80,22 +108,55 @@ export class ProjectService {
           ...createProjectDto,
           staffId: user.id,
           seasonId: season.id,
-          code: 'sdsss',
+          code:uuidv4(),
           students: {
             connect: students.map((studentId) => ({ id: studentId })),
+          },
+          parallels: {
+            connect: parallels.map((parallelId) => ({ id: parallelId })),
           },
         },
         include: {
           category: true,
           typeProject: true,
-          students: true,
-          season: true,
-          staff: true,
+          students: {
+            include: {
+              user: true,
+            },
+          },
+          season: {
+            include: {
+              stages: {
+                include: {
+                  requirements: true,
+                },
+              },
+            },
+          },
+          staff: {
+            include: {
+              user: true,
+            },
+          },
+          projectHistories: true,
+          parallels: {
+            include: {
+              subject: true,
+              teacher: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
         },
       });
 
       const { ...projectEntity } = ProjectEntity.fromObject(project!);
-      return CustomSuccessful.response({ result: projectEntity });
+      const document = await projectFollowingXlsx(projectEntity);
+      return CustomSuccessful.response({
+        result: { ...projectEntity, document },
+      });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -107,7 +168,7 @@ export class ProjectService {
     projectId: number
   ) {
     try {
-      const { students, ...updateProjectDto } = projectDto;
+      const { students, parallels, ...updateProjectDto } = projectDto;
       const existingProjectWithName = await prisma.projects.findFirst({
         where: {
           AND: [{ title: updateProjectDto.title }, { NOT: { id: projectId } }],
@@ -122,10 +183,36 @@ export class ProjectService {
         include: {
           category: true,
           typeProject: true,
-          students: true,
-          season: true,
-          staff: true,
+          students: {
+            include: {
+              user: true,
+            },
+          },
+          season: {
+            include: {
+              stages: {
+                include: {
+                  requirements: true,
+                },
+              },
+            },
+          },
+          staff: {
+            include: {
+              user: true,
+            },
+          },
           projectHistories: true,
+          parallels: {
+            include: {
+              subject: true,
+              teacher: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
         },
       });
       if (!projectExists) throw CustomError.badRequest('El proyecto no existe');
@@ -139,6 +226,13 @@ export class ProjectService {
               id: student.id,
             })),
             connect: students.map((studentId) => ({ id: studentId })),
+          },
+
+          parallels: {
+            disconnect: projectExists.parallels.map((parallel) => ({
+              id: parallel.id,
+            })),
+            connect: parallels.map((parallelId) => ({ id: parallelId })),
           },
         },
         include: {
