@@ -18,3 +18,20 @@ export class ParallelDto {
     return [undefined, new ParallelDto(name, teacherId, subjectId)];
   }
 }
+
+export class ParallelFileDto {
+
+  private constructor(
+    public readonly file: string,
+  ) { }
+
+  static body(object: { [key: string]: any }): [string?, ParallelFileDto?] {
+
+    const { file } = object;
+
+    if (!file) return ['El nombre es obligatorio'];
+
+    return [undefined, new ParallelFileDto(file)];
+  }
+}
+

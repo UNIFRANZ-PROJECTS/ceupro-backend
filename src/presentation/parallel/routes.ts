@@ -11,10 +11,13 @@ export class ParallelRoutes {
     const controller = new ParallelController(parallelService);
 
     // rutas
-    router.get( '/', [ AuthMiddleware.validateJWT ],controller.getParallels );
-    router.post( '/',[ AuthMiddleware.validateJWT ],controller.createParallel );
-    router.put( '/:id',[AuthMiddleware.validateJWT],controller.updateParallel );
-    router.delete( '/:id',[AuthMiddleware.validateJWT],controller.deleteParallel )
+    router.get('/', [AuthMiddleware.validateJWT], controller.getParallels);
+    router.post('/', [AuthMiddleware.validateJWT], controller.createParallel);
+    router.put('/:id', [AuthMiddleware.validateJWT], controller.updateParallel);
+    router.delete('/:id', [AuthMiddleware.validateJWT], controller.deleteParallel);
+
+    // upload file
+    router.post('/file',[AuthMiddleware.validateJWT],controller.createParallels);
     return router;
   }
 }

@@ -43,6 +43,7 @@
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.13",
     "pdfmake": "^0.2.10",
+    "read-excel-file": "^5.7.1",
     "uuid": "^9.0.1"
   }
 }

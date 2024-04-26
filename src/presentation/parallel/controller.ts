@@ -1,5 +1,5 @@
 import { Response, Request } from 'express';
-import { CustomError, PaginationDto, ParallelDto } from '../../domain';
+import { CustomError, PaginationDto, ParallelDto, ParallelFileDto } from '../../domain';
 import { ParallelService } from '../services';
 
 export class ParallelController {
@@ -51,6 +51,17 @@ export class ParallelController {
   deleteParallel = (req: Request, res: Response) => {
 
     this.parallelService.deleteParallel(req.body.user, parseInt(req.params.id))
+      .then(parallel => res.status(201).json(parallel))
+      .catch(error => this.handleError(error, res));
+
+  };
+
+  createParallels = (req: Request, res: Response) => {
+
+    const [error, createParallelFileDto] = ParallelFileDto.body(req.body);
+    if (error) return res.status(400).json({ error });
+
+    this.parallelService.createParallels(createParallelFileDto!,req.body.user)
       .then(parallel => res.status(201).json(parallel))
       .catch(error => this.handleError(error, res));
 

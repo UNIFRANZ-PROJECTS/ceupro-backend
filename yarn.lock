@@ -326,6 +326,11 @@
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.8.tgz#7545ba4fc3c003d6c756f651f3bf163d8f0f29ba"
   integrity sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==
 
+"@xmldom/xmldom@^0.8.2":
+  version "0.8.10"
+  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.10.tgz#a1337ca426aa61cef9fe15b5b28e340a72f6fa99"
+  integrity sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==
+
 accepts@~1.3.8:
   version "1.3.8"
   resolved "https://registry.yarnpkg.com/accepts/-/accepts-1.3.8.tgz#0bf0be125b67014adcb0b0921e62db7bffe16b2e"
@@ -916,6 +921,11 @@ fast-csv@^4.3.1:
   dependencies:
     "@fast-csv/format" "4.3.5"
     "@fast-csv/parse" "4.3.6"
+
+fflate@^0.7.3:
+  version "0.7.4"
+  resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.7.4.tgz#61587e5d958fdabb5a9368a302c25363f4f69f50"
+  integrity sha512-5u2V/CDW15QM1XbbgS+0DfPxVB+jUKhWEKuuFuHncbk3tEEqzmoXL+2KyOFuKGqOnmdIy0/davWF1CkuwtibCw==
 
 fill-range@^7.0.1:
   version "7.0.1"
@@ -1615,6 +1625,15 @@ raw-body@2.5.2:
     http-errors "2.0.0"
     iconv-lite "0.4.24"
     unpipe "1.0.0"
+
+read-excel-file@^5.7.1:
+  version "5.7.1"
+  resolved "https://registry.yarnpkg.com/read-excel-file/-/read-excel-file-5.7.1.tgz#1d182d4c169ef5a612c5172ec6e93810e56f0de0"
+  integrity sha512-cEX+y7A0TmUESjaVqDTVts3iY2YbySG5ew2TlP0qJN+H7PY+b9MqiK3pl/vNPhx112AuyLtmhfqQc5n6+U2vQw==
+  dependencies:
+    "@xmldom/xmldom" "^0.8.2"
+    fflate "^0.7.3"
+    unzipper "^0.10.11"
 
 readable-stream@^2.0.0, readable-stream@^2.0.2, readable-stream@^2.0.5, readable-stream@~2.3.6:
   version "2.3.8"

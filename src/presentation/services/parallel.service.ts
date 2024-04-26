@@ -1,3 +1,5 @@
+const readXlsxFile = require('read-excel-file/node');
+
 import { PrismaClient } from '@prisma/client';
 import {
   CustomError,
@@ -6,12 +8,13 @@ import {
   ParallelDto,
   ParallelEntity,
   CustomSuccessful,
+  ParallelFileDto,
 } from '../../domain';
 
 const prisma = new PrismaClient();
 
 export class ParallelService {
-  constructor() {}
+  constructor() { }
 
   async getParallels(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
@@ -89,6 +92,18 @@ export class ParallelService {
 
       const { ...parallelEntity } = ParallelEntity.fromObject(parallel!);
       return CustomSuccessful.response({ result: parallelEntity });
+    } catch (error) {
+      throw CustomError.internalServer(`${error}`);
+    }
+  }
+
+  async createParallels(fileBase64: ParallelFileDto, user: UserEntity) {
+    try {
+      const fs = require('fs');
+      const file = Buffer.from(fileBase64.file, 'base64');
+      fs.writeFileSync('/tmp/temp.xlsx', file); // o /tmp/temp.png, dependiendo del formato
+      const data = await readXlsxFile('/tmp/temp.xlsx');
+      console.log(data)
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
