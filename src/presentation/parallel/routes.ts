@@ -9,15 +9,15 @@ export class ParallelRoutes {
     const router = Router();
     const parallelService = new ParallelService();
     const controller = new ParallelController(parallelService);
-
+    router.use(AuthMiddleware.validateJWT);
     // rutas
-    router.get('/', [AuthMiddleware.validateJWT], controller.getParallels);
-    router.post('/', [AuthMiddleware.validateJWT], controller.createParallel);
-    router.put('/:id', [AuthMiddleware.validateJWT], controller.updateParallel);
-    router.delete('/:id', [AuthMiddleware.validateJWT], controller.deleteParallel);
+    router.get('/', controller.getParallels);
+    router.post('/', controller.createParallel);
+    router.put('/:id', controller.updateParallel);
+    router.delete('/:id', controller.deleteParallel);
 
     // upload file
-    router.post('/file',[AuthMiddleware.validateJWT],controller.createParallels);
+    router.post('/file', controller.createParallels);
     return router;
   }
 }

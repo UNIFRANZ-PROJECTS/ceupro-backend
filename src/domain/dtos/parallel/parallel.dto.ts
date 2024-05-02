@@ -1,3 +1,5 @@
+import { UploadedFile } from "express-fileupload";
+
 export class ParallelDto {
 
   private constructor(
@@ -22,14 +24,14 @@ export class ParallelDto {
 export class ParallelFileDto {
 
   private constructor(
-    public readonly file: string,
+    public readonly file: UploadedFile,
   ) { }
 
   static body(object: { [key: string]: any }): [string?, ParallelFileDto?] {
 
     const { file } = object;
-
-    if (!file) return ['El nombre es obligatorio'];
+    
+    if (!file) return ['El archivo es obligatorio'];
 
     return [undefined, new ParallelFileDto(file)];
   }

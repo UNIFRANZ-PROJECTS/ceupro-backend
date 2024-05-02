@@ -14,7 +14,7 @@ import {
 const prisma = new PrismaClient();
 
 export class ParallelService {
-  constructor() { }
+  constructor() {}
 
   async getParallels(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
@@ -97,14 +97,20 @@ export class ParallelService {
     }
   }
 
-  async createParallels(fileBase64: ParallelFileDto, user: UserEntity) {
+  async createParallels(parallelFileDto: ParallelFileDto, user: UserEntity) {
+    const fs = require('fs');
     try {
-      const fs = require('fs');
-      const file = Buffer.from(fileBase64.file, 'base64');
-      fs.writeFileSync('/tmp/temp.xlsx', file); // o /tmp/temp.png, dependiendo del formato
-      const data = await readXlsxFile('/tmp/temp.xlsx');
-      console.log(data)
+      const { data } = parallelFileDto.file;
+      const filePath = '/tmp/temp.xlsx';
+      fs.writeFileSync(filePath, data);
+      const excelData = await readXlsxFile(filePath);
+      
+      console.log(excelData);
+
+  
+      return excelData;
     } catch (error) {
+      console.log(error);
       throw CustomError.internalServer(`${error}`);
     }
   }

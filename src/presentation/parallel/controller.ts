@@ -1,6 +1,7 @@
 import { Response, Request } from 'express';
 import { CustomError, PaginationDto, ParallelDto, ParallelFileDto } from '../../domain';
 import { ParallelService } from '../services';
+import { UploadedFile } from 'express-fileupload';
 
 export class ParallelController {
 
@@ -57,11 +58,11 @@ export class ParallelController {
   };
 
   createParallels = (req: Request, res: Response) => {
-
-    const [error, createParallelFileDto] = ParallelFileDto.body(req.body);
+    const file = req.files?.file;
+    const [error, createParallelFileDto] = ParallelFileDto.body({ file });
     if (error) return res.status(400).json({ error });
 
-    this.parallelService.createParallels(createParallelFileDto!,req.body.user)
+    this.parallelService.createParallels(createParallelFileDto!, req.body.user)
       .then(parallel => res.status(201).json(parallel))
       .catch(error => this.handleError(error, res));
 
