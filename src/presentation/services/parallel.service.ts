@@ -1,6 +1,7 @@
 const readXlsxFile = require('read-excel-file/node');
-
 import { PrismaClient } from '@prisma/client';
+import { bcryptAdapter } from '../../config';
+
 import {
   CustomError,
   PaginationDto,
@@ -14,7 +15,7 @@ import {
 const prisma = new PrismaClient();
 
 export class ParallelService {
-  constructor() {}
+  constructor() { }
 
   async getParallels(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
@@ -103,11 +104,42 @@ export class ParallelService {
       const { data } = parallelFileDto.file;
       const filePath = '/tmp/temp.xlsx';
       fs.writeFileSync(filePath, data);
-      const excelData = await readXlsxFile(filePath);
-      
-      console.log(excelData);
+      const excelData: [] = await readXlsxFile(filePath);
 
-  
+      [...excelData.shift()!].map(async (item: string[]) => {
+        // buscamos al profesor
+        const teacherExists = await prisma.teachers.findFirst({
+          where: {
+            ci: `${item.at(6)}`,
+            user: {
+              email: item.at(7)
+            }
+          }
+        })
+        let userId: number;
+        if (!teacherExists) {
+          //creamos al profesor
+          const user = await prisma.users.create({
+            data: {
+              name: item.at(4) ?? '',
+              lastName: item.at(5) ?? '',
+              email: item.at(7) ?? '',
+              phone: '5917373566',
+              password: await bcryptAdapter.hash(item.at(7) ?? ''),
+            },
+          });
+          userId = user.id;
+        } else {
+          userId = teacherExists.userId;
+        }
+        await prisma.teachers.create({
+          data: {
+            ci: `${item.at(6)}`,
+            userId: userId,
+          },
+        });
+      });
+
       return excelData;
     } catch (error) {
       console.log(error);

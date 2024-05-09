@@ -68,7 +68,7 @@ export class TeacherService {
         userId = userExists.id;
       }
 
-      const staffExists = await prisma.teachers.findFirst({
+      const teacherExists = await prisma.teachers.findFirst({
         where: {
           user: {
             email: createTeacherDto.email
@@ -77,7 +77,7 @@ export class TeacherService {
         }
       });
 
-      if (staffExists) throw CustomError.badRequest('El docente ya existe');
+      if (teacherExists) throw CustomError.badRequest('El docente ya existe');
 
       const teacher = await prisma.teachers.create({
         data: {
